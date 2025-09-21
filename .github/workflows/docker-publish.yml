@@ -1,0 +1,85 @@
+name: ECS Build and Deploy
+
+on:
+  push:
+    branches: ["master"]
+
+env:
+  REGISTRY: ghcr.io
+  PHP_IMAGE_NAME: php-app
+  NGINX_IMAGE_NAME: nginx
+  IMAGE_TAG: latest
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+  
+    env:
+      REGISTRY: ghcr.io
+      PHP_IMAGE_NAME: php-app
+      NGINX_IMAGE_NAME: nginx
+      IMAGE_TAG: latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push PHP image (with cache)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./php
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.PHP_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+     
+      - name: Build and push NGINX image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./nginx
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+  
+  ECSUpdateService:
+    runs-on: ubuntu-latest
+    needs: docker
+    env:
+      CLUSTER: nginx-php-cluster 
+      SERVICE: nginx-php-service
+    environment:
+      name: AWS
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v5
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE }}
+          role-session-name: Github-CI
+          aws-region: ${{ vars.AWS_REGION }}
+      # Upload a file to AWS s3
+      - name: ECS deploy
+        run: >
+          aws ecs update-service
+          --cluster ${{ env.CLUSTER }}
+          --service ${{ env.SERVICE }}
+          --force-new-deployment
+

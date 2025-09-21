@@ -1,0 +1,26 @@
+services:
+  php:
+    #image: ghcr.io/artyomprima-cloud/php-app:latest 
+    image: php-app:local
+    volumes:
+      - ./php/app:/var/www/html
+    command: php-fpm
+    networks:
+      - app-network
+  nginx:
+    #image: ghcr.io/artyomprima-cloud/nginx:latest
+    image: nginx:local
+    environment:
+      PHPFPM_HOST: php
+    volumes:
+      - ./php/app/:/var/www/html
+      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+    depends_on:
+      - php
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge

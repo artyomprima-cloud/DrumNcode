@@ -1,0 +1,34 @@
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+
+# Environment files that contain secrets
+.env
+.env.*.local
+
+# Docker Compose logs
+docker-compose*.log
+
+# Docker build artifacts
+**/Dockerfile.*
+**/docker-compose.override.yml
+**/docker-compose.override.yml.local
+
+# Docker volumes and data
+volumes/
+data/
+
+# Docker image and container metadata
+*.tar
+*.log
+*.pid
+*.sock
+
+# Temporary Docker files
+tmp/
+
