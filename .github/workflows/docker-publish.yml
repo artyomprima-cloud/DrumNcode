@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }} # DrumNcode
+  IMAGE_NAME: php-app
   IMAGE_TAG: latest
 
 jobs:
