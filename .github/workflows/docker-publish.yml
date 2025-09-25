@@ -47,6 +47,4 @@ jobs:
           context: ./nginx
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
      
