@@ -1,6 +1,8 @@
 services:
   php:
     image: ghcr.io/artyomprima-cloud/php-app:latest
+    expose:
+      - "9000"
     volumes:
       - ./php/app:/var/www/html
     networks:
