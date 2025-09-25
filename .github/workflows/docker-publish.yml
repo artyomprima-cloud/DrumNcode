@@ -40,8 +40,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Display image size
+      - name: Display image data
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} > image_info.txt
-          echo "### Image Size Info" >> $GITHUB_STEP_SUMMARY
-          grep -i 'Size:' image_info.txt >> $GITHUB_STEP_SUMMARY
+         docker manifest inspect -v ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
