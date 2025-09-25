@@ -1,53 +1,57 @@
-# Stage 1: builder stage (build grpc + protobuf + redis)
-FROM php:8.2 AS builder
+FROM php:8.2-cli-alpine AS build
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    unzip \
-    autoconf \
-    automake \
-    libtool \
-    pkg-config \
-    make \
-    g++ \
-    libssl-dev \
-    libz-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+        libxml2-dev \
+        autoconf \
+        gcc \
+        g++ \
+        make \
+        protobuf-dev \
+        libressl-dev \
+        oniguruma-dev \
+        bash \
+        curl \
+        openssh-client \
+        git \
+        zlib-dev \
+        icu-dev \
+        hiredis-dev \
+        && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS
 
-# Set parallel build flags to utilize all cores, speed up make
-ENV MAKEFLAGS="-j$(nproc)"
+# Install SOAP extension
+RUN docker-php-ext-install soap
 
-# Install PECL extensions in builder: grpc + protobuf + redis
-RUN pecl install grpc-1.72.0 \
-    && pecl install protobuf \
-    && pecl install redis \
-    && docker-php-ext-enable grpc protobuf redis
+# Install protobuf extension via PECL
+RUN pecl install protobuf \
+    && docker-php-ext-enable protobuf
 
-# Stage 2: final image
-FROM php:8.2-apache
+# Install Redis extension via PECL
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
-# Copy compiled .so and config files from builder
-COPY --from=builder /usr/local/lib/php/extensions/no-debug-non-zts-*/grpc.so \
-                     /usr/local/lib/php/extensions/no-debug-non-zts-*/grpc.so
-COPY --from=builder /usr/local/lib/php/extensions/no-debug-non-zts-*/protobuf.so \
-                     /usr/local/lib/php/extensions/no-debug-non-zts-*/protobuf.so
-COPY --from=builder /usr/local/lib/php/extensions/no-debug-non-zts-*/redis.so \
-                     /usr/local/lib/php/extensions/no-debug-non-zts-*/redis.so
-COPY --from=builder /usr/local/etc/php/conf.d/docker-php-ext-grpc.ini \
-                     /usr/local/etc/php/conf.d/docker-php-ext-grpc.ini
-COPY --from=builder /usr/local/etc/php/conf.d/docker-php-ext-protobuf.ini \
-                     /usr/local/etc/php/conf.d/docker-php-ext-protobuf.ini
-COPY --from=builder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini \
-                     /usr/local/etc/php/conf.d/docker-php-ext-redis.ini
+# Clean up build dependencies
+RUN apk del .build-deps
 
-# Install soap in final image
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxml2-dev \
-    && docker-php-ext-install soap \
-    && rm -rf /var/lib/apt/lists/*
+# Stage 2: Final runtime image (minimal)
+FROM php:8.2-cli-alpine
 
-# Copy your application code
-COPY index.php /var/www/html/
+RUN apk add --no-cache git grpc-cpp grpc-dev $PHPIZE_DEPS && \
+    GRPC_VERSION=$(apk info grpc -d | grep grpc | cut -d- -f2) && \
+    git clone --depth 1 -b v${GRPC_VERSION} https://github.com/grpc/grpc /tmp/grpc && \
+    cd /tmp/grpc/src/php/ext/grpc && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf /tmp/grpc && \
+    apk del --no-cache git grpc-dev $PHPIZE_DEPS && \
+    echo "extension=grpc.so" > /usr/local/etc/php/conf.d/grpc.ini
 
+# Copy PHP extensions and config from build stage
+COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+
+COPY app /var/www/html
+
+CMD ["php", "-S 0.0.0.0:8080 -t /var/www/html"]
+ 
