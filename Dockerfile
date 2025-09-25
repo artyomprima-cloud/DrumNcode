@@ -35,6 +35,9 @@ RUN apk del .build-deps
 # Stage 2: Final runtime image (minimal)
 FROM php:8.2-cli-alpine
 
+LABEL org.opencontainers.image.source=https://github.com/artyomprima-cloud/DrumNcode
+LABEL org.opencontainers.image.description="PHP-alpine"
+
 RUN apk add --no-cache git grpc-cpp grpc-dev $PHPIZE_DEPS && \
     GRPC_VERSION=$(apk info grpc -d | grep grpc | cut -d- -f2) && \
     git clone --depth 1 -b v${GRPC_VERSION} https://github.com/grpc/grpc /tmp/grpc && \
