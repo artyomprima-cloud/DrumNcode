@@ -53,5 +53,5 @@ COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 
 COPY app /var/www/html
 
-EXPOSE 9000
+CMD ["php", "-S 0.0.0.0:8080 -t /var/www/html"]
  
