@@ -1,1 +1,2 @@
-Test1
+Usage:
+docker compose up -> localhost:8080
