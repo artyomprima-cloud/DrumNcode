@@ -33,7 +33,7 @@ RUN pecl install redis \
 RUN apk del .build-deps
 
 # Stage 2: Final runtime image (minimal)
-FROM php:8.2-fpm
+FROM php:8.2-fpm-alpine
 
 RUN apk add --no-cache git grpc-cpp grpc-dev $PHPIZE_DEPS && \
     GRPC_VERSION=$(apk info grpc -d | grep grpc | cut -d- -f2) && \
