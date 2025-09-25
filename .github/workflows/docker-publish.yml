@@ -6,7 +6,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: php-app
+  PHP_IMAGE_NAME: php-app
+  NGINX_IMAGE_NAME: nginx
   IMAGE_TAG: latest
 
 jobs:
@@ -31,15 +32,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image (with cache)
+      - name: Build and push PHP image (with cache)
         uses: docker/build-push-action@v5
         with:
           context: ./php
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.PHP_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Display image data
-        run: |
-         docker manifest inspect ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+     
+      - name: Build and push NGINX image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./nginx
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+     
