@@ -53,8 +53,5 @@ COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 
 COPY app /var/www/html
 
-LABEL org.opencontainers.image.source=https://github.com/artyomprima-cloud/DrumNcode
-LABEL org.opencontainers.image.description="PHP-alpine"
-
 CMD ["php", "-S 0.0.0.0:8080 -t /var/www/html"]
  
