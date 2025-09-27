@@ -1,6 +1,7 @@
 server {
     listen 80;
     server_name localhost;
+    add_header X-Container-ID $hostname;
 
     root /var/www/html;
     index index.php index.html;
