@@ -1,5 +1,6 @@
 FROM nginx:1.29.1
 
-COPY nginx.conf.template /etc/nginx/nginx.conf.template
+COPY nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
