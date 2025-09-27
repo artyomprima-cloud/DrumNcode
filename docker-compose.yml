@@ -9,7 +9,7 @@ services:
   nginx:
     image: ghcr.io/artyomprima-cloud/nginx:latest
     environment:
-      PHPFPM_HOST: php 
+      PHPFPM_HOST: php
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./php/app/:/var/www/html
