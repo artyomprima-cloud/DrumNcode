@@ -3,7 +3,7 @@
 A webpage that displays a simple php.info. Stack can be automatically deployed to ECS.
 
 ## HLD
-![HLD](./PHP+Nginx Infra.drawio.png)
+![HLD](/images/web_app_infrastructure.drawio.png)
 
 ## Features
 - Cloudformation template
