@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: ECS Task Definition with Nginx and PHP from GitHub Container Registry with ALB and Auto Scaling (Hardcoded)
+Description: ECS Task Definition with Nginx and PHP from GitHub Container Registry with ALB and Auto Scaling
 
 Parameters:
   DefaultVPC:
@@ -24,15 +24,6 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-      Policies:
-        - PolicyName: AllowSecretsManager
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:github-registry-credentials-*"
 
   # Auto Scaling Role for ECS
   ECSAutoScalingRole:
@@ -92,8 +83,6 @@ Resources:
               awslogs-region: !Ref "AWS::Region"
               awslogs-stream-prefix: nginx
               awslogs-create-group: "true"
-          RepositoryCredentials:
-            CredentialsParameter: github-registry-credentials
         - Name: php
           Image: "ghcr.io/artyomprima-cloud/php-app:latest"
           Essential: true
@@ -107,8 +96,6 @@ Resources:
               awslogs-region: !Ref "AWS::Region"
               awslogs-stream-prefix: php
               awslogs-create-group: "true"
-          RepositoryCredentials:
-            CredentialsParameter: github-registry-credentials
 
   # Security Group for ECS Service
   ECSServiceSecurityGroup:
